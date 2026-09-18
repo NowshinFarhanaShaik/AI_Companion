@@ -105,10 +105,28 @@ STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_ROOT = BASE_DIR / "media"
 MEDIA_URL = "/media/"
-STORAGES = {
-    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
-    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
-}
+ 
+STORAGE_BACKEND = os.environ.get("STORAGE_BACKEND", "local")
+ 
+if STORAGE_BACKEND == "s3":
+    STORAGES = {
+        "default": {"BACKEND": "storages.backends.s3.S3Storage"},
+        "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
+    }
+    AWS_ACCESS_KEY_ID = os.environ["S3_ACCESS_KEY_ID"]
+    AWS_SECRET_ACCESS_KEY = os.environ["S3_SECRET_ACCESS_KEY"]
+    AWS_STORAGE_BUCKET_NAME = os.environ["S3_BUCKET_NAME"]
+    AWS_S3_ENDPOINT_URL = os.environ["S3_ENDPOINT_URL"]
+    AWS_S3_REGION_NAME = os.environ.get("S3_REGION_NAME", "us-west-004")
+    AWS_S3_ADDRESSING_STYLE = "virtual"
+    AWS_DEFAULT_ACL = None
+    AWS_QUERYSTRING_AUTH = True
+    AWS_S3_FILE_OVERWRITE = False
+else:
+    STORAGES = {
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
+    }
 
 # Postgres-backed, so rate-limit counters are shared by every web worker. Needs `manage.py createcachetable`.
 CACHES = {
